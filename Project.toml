@@ -1,0 +1,9 @@
+name = "Aoc2020"
+uuid = "6d38b28a-46c8-4f93-b73e-2d09d744fe01"
+authors = ["dp1 <dominic.pearce@fiosgenomics.com>"]
+version = "0.1.0"
+
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+Traceur = "37b6cedf-1f77-55f8-9503-c64b63398394"
