@@ -8,7 +8,7 @@ function part1(input)
 end
 
 function possible_combinations(input)
-    seq = sorted = vcat(0, sort(input), maximum(input)+3)
+    sorted = vcat(0, sort(input), maximum(input)+3)
     @memoize Dict function backtrack(seq)
         if length(seq) == 1
             return 1
@@ -25,6 +25,6 @@ part2(x) = possible_combinations(x)
 
 end
 
-input = [parse(Int, i) for i in eachline("src/Dec10/input.txt")];
+input = [parse(Int, i) for i in eachline("src/Dec10/example.txt")];
 part1(input)
 part2(input)
