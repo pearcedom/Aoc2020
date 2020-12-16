@@ -11,13 +11,8 @@ function play(x, lim)
 end
 
 function speak!(d, n, i)
-    if haskey(d, n)
-        next = i - d[n]
-        d[n] = i
-    else
-        next = 0
-        d[n] = i
-    end
+    next = haskey(d, n) ? i - d[n] : 0
+    d[n] = i
     d, next, i+1
 end
 
@@ -26,5 +21,6 @@ part2(x) = play(x, 30000000)
 
 end
 
-# @time part1([14, 8, 16, 0, 1, 17])
-# @time part2([14, 8, 16, 0, 1, 17])
+using BenchmarkTools
+@time part1([14, 8, 16, 0, 1, 17])
+@btime part2([14, 8, 16, 0, 1, 17])
