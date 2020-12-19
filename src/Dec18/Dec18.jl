@@ -1,7 +1,7 @@
 module Dec18
 
 function evaluate(expr::Array)
-    res = evaluate(popfirst!(expr))
+    res = 0
     while !isempty(expr)
         op, n = popfirst!(expr)
         res = eval(op)(res, evaluate(n))
@@ -13,15 +13,8 @@ evaluate(expr::Int) = expr
 
 function oplist(x)
     x = deepcopy(x)
-    n = popfirst!(x)
-    if n == '('
-        i = close_paren(x)
-        n = oplist(x[1:i-1])
-        x = x[i+1:end]
-    else
-        n = parse(Int, n)
-    end
-    expr = Any[n]
+    pushfirst!(x, '+')
+    expr = Any[]
     while !isempty(x)
         op = getfield(Main, Symbol(popfirst!(x)))
         n = popfirst!(x)
@@ -77,8 +70,8 @@ end
 
 #-----------------------------
 
-input = readlines("src/Dec18/input.txt")
-@time part1(input)
-@time part2(input)
+# input = readlines("src/Dec18/input.txt")
+# @time part1(input)
+# @time part2(input)
 
 
