@@ -1,43 +1,69 @@
 module Dec23
 
-function crabcups(cups::Array, moves)
-    i = 1
+function crabcups(cups::Dict, cup, moves)
+    lim = maximum(keys(cups))
     move = 1
     while move <= moves
-        cup = cups[i]
-        pickup = pickup!(cups, i)
-        destination = insert_at(cups, cup)
-        for p in reverse(pickup)
-            insert!(cups, destination, p)
-        end
-        i = mod1(findfirst(x->x == cup, cups) + 1, 9)
+        next = pickup(cups, cup)
+        destination = insert_at(cup, next, lim)
+        cups[cup] = cups[next[3]]
+        cups[next[3]] = cups[destination]
+        cups[destination] = next[1]
+        cup = cups[cup]
         move += 1
     end
-    i1 = findfirst(x->x == 1, cups)
-    cups = vcat(cups[i1+1:end], cups[1:i1-1])
-    parse(Int, join(cups))
+    cups
 end
 
-crabcups(cups::Int, moves) = crabcups(reverse(digits(cups)), moves)
+function crabcups(cups::String, moves, part2 = false)
+    cups = parse.(Int, collect(cups))
+    cup = cups[1]
+    cups = part2 ? vcat(cups, 10:Int(1e6)) : cups
+    cups = populate(cups)
+    crabcups(cups, cup, moves)
+end
 
-function insert_at(cups, val)
-    j = nothing
-    val = mod1(val - 1, 9)
-    while isnothing(j)
-        j = findfirst(x->x == val, cups)
-        val = mod1(val - 1, 9)
+function pickup(cups::Dict, cup)
+    a = cups[cup]
+    b = cups[a]
+    c = cups[b]
+    [a, b, c]
+end
+
+function insert_at(cup, next, lim)
+    cup = mod1(cup - 1, lim)
+    while cup in next
+        cup = mod1(cup - 1, lim)
     end
-    j + 1
+    cup
 end
 
-function pickup!(cups, i)
-    i+1:minimum([i+3, 9])
-    x = splice!(cups, i+1:minimum([i+3, 9]))
-    y = splice!(cups, 1:i+3-9)
-    vcat(x, y)
+function populate(input)
+    lim = maximum(input)
+    cups = Dict()
+    for (i, j) in enumerate(input)
+        cups[j] = input[mod1(i+1, lim)]
+    end
+    cups
+end
+
+function unlink(x, i)
+    lim = maximum(keys(x))
+    out = []
+    while length(out) < lim
+        i = x[i]
+        push!(out, i)
+    end
+    join(out)
+end
+
+part1(x) = unlink(crabcups(x, 100), 1)[1:end-1]
+function part2(x)
+    cups = crabcups(x, 10000001, true)
+    cups[1] * cups[cups[1]]
 end
 
 end
 
-part1(x) = crabcups(x, 100)
-part1(418976235)
+# part1("418976235")
+# part2("418976235")
