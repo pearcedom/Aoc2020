@@ -60,10 +60,13 @@ function day!(d::Dict, lim)
     end
     n_adj = n_adjacent.(keys(d), Ref(d))
     for (h, n) in n_adj
-        if d[h] == "black" && !(n in [1, 2])
-            d[h] = "white"
-        elseif d[h] == "white" && n == 2
+        col = d[h]
+        if col == "black" && !(n in [1, 2])
+            delete!(d, h)
+        elseif col == "white" && n == 2
             d[h] = "black"
+        elseif col == "white"
+            delete!(d, h)
         end
     end
     day!(d, lim-1)
@@ -95,4 +98,4 @@ end
 
 input = readlines("src/Dec24/input.txt")
 part1(input)
-part2(input, 100)
+@time part2(input, 100)
