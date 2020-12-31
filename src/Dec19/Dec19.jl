@@ -1,126 +1,48 @@
 module Dec19
 
-struct Seq
-    x::Array
+function parse_input(input)
+    split_by = findfirst(x->x .== "", input)
+    rules, messages = input[1:split_by-1], input[split_by+1:end]
+    rules = Dict(i => replace(j, "\"" => "") for (i, j) in split.(rules, ": "))
+    rules = Dict(i => " $j " for (i, j) in rules)
+    messages, rules
 end
 
-struct Branch
-    x::Array
+function check_messages(messages, rules)
+    x = regex0(rules)
+    messages[occursin.(x, messages)]
 end
 
-follow_rules(x::Char, rules::Dict) = x
-function follow_rules(x::String, rules::Dict)
-    follow_rules(rules[x], rules)
-end
-function follow_rules(x::Branch, rules::Dict)
-    res = vcat(follow_rules.(x.x, Ref(rules))...)
-    #println(res)
-    res
-end
-function follow_rules(x::Seq, rules::Dict)
-    res = simplify(follow_rules.(x.x, Ref(rules)))
-    #println(res)
-    res
-end
-
-
-out = follow_rules(Seq(["42"]), rules)
-x = [out, out, out, out, out, out]
-combine(x);
-
-x = [["A", "B", "C", "X"], ["D", "E", "F", "X"], ["G", "H", "I", "X"]]
-x = vcat(x, x, x, x)
-@time combine(x);
-res = [repeat(i, Int(length(x) / 3)) for i in ["XEI", "BEG"]]
-@time combine2(x, res)
-
-
-function combine(x, s = "")
-    if isempty(x)
-        return s
+function regex0(r)
+    x = deepcopy(r["0"])
+    while !isnothing(match(r"\d", x))
+        for i in eachmatch(r"\d+", x)
+            x = replace(x, " $(i.match) " => " ($(r[i.match])) ", count = 1)
+        end
+        x
     end
-    y = x[1]
-    vcat([combine(x[2:end], s*i) for i in y]...)
+    Regex("^$(replace(x, " " => ""))\$")
 end
 
-function combine2(x, res, s = "")
-    if isempty(x)
-        return s
-    elseif all(s .!= [i[1:length(s)] for i in res])
-        return
-    else
-        y = x[1]
-        vcat([combine(x[2:end], res, s*i) for i in y]...)
+function rerule(messages, rules)
+    x = rules["8"]
+    c = [x]
+    for i in 1:3
+        push!(c, c[end] * x)
     end
-end
-
-
-simplify(x::Char) = x
-simplify(x::Array{Char, 1}) = reduce(*, x)
-function simplify(x::Array{Array{String, 1}, 1})
-    length(x) == 1 ? x[1] : combine(x)
-end
-function simplify(x::Array{Any, 1})
-    #all(length.(x) .> maximum(length.(messages))) ? "" : collate(x)
-    collate(x)
-end
-
-function collate(r::String, vs::Array)
-    [[i *= r for i in v] for v in vs]
-end
-function collate(r::Char, vs::Array)
-    collate(string(r), vs)
-end
-function collate(r::Array, vs::Array)
-    vcat([[[i *= s for i in v] for s in r] for v in vs]...)
-end
-function collate(rs::Array)
-    vs = [[""]]
-    while !isempty(rs)
-        r = popfirst!(rs)
-        vs = collate(r, vs)
+    rules["8"] = join(c, "|")
+    x = rules["11"]
+    c = [x]
+    for i in 1:3
+        push!(c, replace(c[end], r" (42) (31) " => s" \1 \1 \2 \2 "))
     end
-    vcat(vs...)
+    rules["11"] = join(c, "|")
+    messages, rules
 end
 
-function part1(x, y)
-    followed = follow_rules("0", y)
-    length([i for i in x if i in followed])
-end
+part1(x) = length(check_messages(parse_input(input)...))
+part2(x) = length(check_messages(rerule(parse_input(input)...)...))
 
 input = readlines("src/Dec19/example2.txt")
-split_by = findfirst(x->x .== "", input)
-messages = input[split_by+1:end]
-
-rules = Dict{String,Any}()
-for i in input[1:split_by-1]
-    colon_at = findfirst(':', i)
-    key = string(i[1:colon_at-1])
-    rule = string.(split(i[colon_at+2:end], " "))
-    if any(occursin.("\"", rule))
-        rule = replace.(rule, "\"" => "")[1][1]
-    elseif any(rule .== "|")
-        pipe_at = findfirst(x->x .== "|", rule)
-        rule = Branch([Seq(rule[1:pipe_at-1]), Seq(rule[pipe_at+1:end])])
-    else
-        rule = Seq(rule)
-    end
-    rules[key] = rule
-end
-
-rules["8"] = Branch([
-    Seq(["42"]),
-    Seq(["42", "42"]),
-    Seq(["42", "42", "42"]),
-    #Seq(["42", "42", "42", "42"])
-   ])
-
-rules["11"] = Branch([
-    Seq(["42", "31"]),
-    Seq(["42", "42", "31", "31"]),
-    #Seq(["42", "42", "42", "31", "31", "31"]),
-    #Seq(["42", "42", "42", "42", "31", "31", "31", "31"])
-   ])
-
-@time part2(messages, rules)
-
+@time part1(input)
+@time part2(input)
